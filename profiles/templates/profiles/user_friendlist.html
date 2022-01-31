@@ -1,0 +1,43 @@
+{% extends 'base.html' %}
+
+{% block title %}{% endblock title %}
+
+ 
+{% block content %}
+
+<h1 class="text-center my-5">Friends of {{profile.user}}</h1>
+
+{% for obj in qs %}
+<div class="card container my-4" style="width: 40rem;">
+    <div class="row py-4">
+        <div class="col-4">
+            <img src="{{obj.avatar.url}}" alt="" class="img-fluid">
+            {% if request.user == obj.user %}
+                <a href="{% url 'my_profile' %}" class="btn btn-primary mt-4">See Profile</a>
+            {% else %}
+                <a href="{{obj.get_absolute_url}}" class="btn btn-primary mt-4">See Profile</a>
+            {% endif %}
+        </div>
+        <div class="col-8">
+            <div class="user-name-bio">
+                <h3>{{obj.user}}</h3>
+                <h5>{{obj.bio}}</h5>
+            </div>
+            <div class="user-invites">
+
+                 {% if request.user in obj.friends.all %}
+                    <form action="{% url 'remove-friend' %}" method='POST'>
+                        {% csrf_token %}
+                        <input type="hidden" name="profile_pk" value="{{obj.pk}}">
+                        <button type="submit" class="btn btn-primary">remove from friends</button>
+                    </form>
+                {% endif %}
+            </div>
+
+        </div>
+
+    </div>
+</div>
+{% endfor %}
+
+{% endblock content %}

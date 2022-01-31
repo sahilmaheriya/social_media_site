@@ -1,0 +1,120 @@
+{% extends 'base.html' %}
+
+{% load static %}
+
+{% block content %}
+
+{% if posts %}
+
+
+<h1>my posts </h1>
+<div class="container">
+
+  <div class="post-container col-lg-8 my-4 m-auto">
+    {% for obj in posts %}
+
+    <div class="card my-4 shadow">
+      <div class="card-header d-flex justify-content-between">
+        <div class="post-info">
+          <img src="{{obj.author.avatar.url}}" alt="" style="width: 2rem;"> 
+          {% ifequal obj.author.user request.user %}
+            <a href="{% url 'my_profile' %}" class="fs-5 text-decoration-none">
+          {% else %}
+            <a href="{{obj.author.get_absolute_url}}" class="fs-5 text-decoration-none">
+            {% endifequal %}
+            {{obj.author.user}}</a> - {{obj.created|timesince}} ago
+        </div>
+
+        <div class="post-option d-flex flex-row-reverse">
+        {% ifequal request.user obj.author.user  %}
+        <div class="dropdown">
+          <button class="btn" type="button" id="dropdownMenuButton1" data-bs-toggle="dropdown" aria-expanded="false">
+            <i class="fa fa-ellipsis-v"></i>
+          </button>
+          <ul class="dropdown-menu" aria-labelledby="dropdownMenuButton1">
+            <li><a class="dropdown-item" href="{% url 'post-delete' obj.pk %}">Delete</a></li>
+            <li><a class="dropdown-item" href="{% url 'post-update' obj.pk %}">Update</a></li>
+          </ul>
+        </div>
+        {% endifequal %}
+        </div>
+      </div>
+      <div class="card-body">
+        <div class="content d-flex flex-column">
+          {% if obj.image %}
+            <img src="{{obj.image.url}}" alt="" class="img-fluid">
+          {% endif %}
+          <br>
+          {{obj.content}}
+        </div>
+        <hr>
+        <div class="content-footer">
+          <div class="like">
+
+            <form action="" class="like-form" id="{{obj.id}}" method="POST">
+              {% csrf_token %}
+                {% if profile not in obj.liked.all %}
+                  <button type="submit" id="like-btn" class="like-btn{{obj.id}}"><i class="far fa-heart like-icon{{obj.id}}"></i></button>
+                {% else %}
+                  <button type="submit" id="like-btn" class="like-btn{{obj.id}}"><i class="far fa-heart text-danger like-icon{{obj.id}}"></i></button>
+                {% endif %}
+            </form>
+            
+
+            <span id="num_likes{{obj.id}}"> {{obj.num_likes}} </span>
+          </div>
+          <div class="comment">
+            {% comment %} <button data-bs-toggle="modal" data-bs-target="#commentmodal"><i class="far fa-comment"></i></button> {% endcomment %}
+          </div>
+          <div class="share">
+            {% comment %} <button><i class="far fa-share-square"></i></button> {% endcomment %}
+          </div>
+          <div class="num_comments d-flex flex-row-reverse w-100">
+            <span class="flex-end">
+              <a class="comment_btn" id="{{obj.id}}">{{obj.num_comments}} Comments</a>
+            </span>
+          </div>
+        </div>
+      </div>
+
+
+      <form action="{% url 'main_post_view' %}" method="post">
+        {% csrf_token %}
+        <input type="hidden" name="post_id" value={{obj.id}}>
+        <div class="comment_form d-flex">
+          {{comment_form}}
+          <input type="submit" value="submit" class="btn btn-primary" name="submit_c_form">
+        </div>
+      </form>
+      
+      <div class="all_comments p-2 d-none" id="all_comments{{obj.id}}">
+        {% if obj.comment_set.all %}
+          {% for c in obj.comment_set.all %}
+            <p class="comment shadow-sm p-2">
+              <a href="{{c.user.get_absolute_url}}"><img src="{{c.user.avatar.url}}" alt="" class="img-fluid"> {{c.user.user}}</a> {{c.body}} <br>  
+            </p>
+          {% endfor %}
+        {% else %}
+          <h5>No Comments</h5>
+        {% endif %}
+      </div>
+
+    </div>
+
+    {% endfor %}
+  </div>
+
+</div>
+{% else %}
+
+<h1>No Post</h1>
+
+{% endif %}
+
+{% endblock content %}
+
+
+{% block scripts %}
+<script src="{% static 'post_script.js' %}"></script>
+{% endblock scripts %}
+

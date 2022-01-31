@@ -1,0 +1,154 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}
+
+posts
+
+{% endblock title %}
+
+
+{% block content %}
+
+
+<div class="container">
+      <section class="post">
+        <div class="post-container col-lg-8 my-4">
+          {% for obj in qs %}
+    
+      
+          <div class="content">
+            <div class="card my-4 shadow">
+              <div class="card-header">
+                <div class="post-info">
+                  <img src="{{obj.author.avatar.url}}" alt=""> 
+                  {% ifequal obj.author.user request.user %}
+                    <a href="{% url 'my_profile' %}" class="fs-5 text-decoration-none">
+                  {% else %}
+                    <a href="{{obj.author.get_absolute_url}}" class="fs-5 text-decoration-none">
+                    {% endifequal %}
+                    {{obj.author.user}}</a> - {{obj.created|timesince}} ago
+                </div>
+
+                <div class="post-option">
+                {% ifequal request.user obj.author.user  %}
+                <div class="dropdown">
+                  <button class="btn" type="button" id="dropdownMenuButton1" data-bs-toggle="dropdown" aria-expanded="false">
+                    <i class="fa fa-ellipsis-v"></i>
+                  </button>
+                  <ul class="dropdown-menu" aria-labelledby="dropdownMenuButton1">
+                    <li><a class="dropdown-item" href="{% url 'post-delete' obj.pk %}">Delete</a></li>
+                    <li><a class="dropdown-item" href="{% url 'post-update' obj.pk %}">Update</a></li>
+                  </ul>
+                </div>
+                {% endifequal %}
+                </div>
+              </div>
+              <div class="card-body">
+                <div class="content d-flex flex-column">
+                  {% if obj.image %}
+                    <img src="{{obj.image.url}}" alt="" class="img-fluid">
+                  {% endif %}
+                  <br>
+                  {{obj.content}}
+                </div>
+                <hr>
+                <div class="content-footer">
+                  <div class="like">
+
+                    <form action="" class="like-form" id="{{obj.id}}" method="POST">
+                      {% csrf_token %}
+                        {% if profile not in obj.liked.all %}
+                          <button type="submit" id="like-btn" class="like-btn{{obj.id}}"><i class="far fa-heart like-icon{{obj.id}}"></i></button>
+                        {% else %}
+                          <button type="submit" id="like-btn" class="like-btn{{obj.id}}"><i class="far fa-heart text-danger like-icon{{obj.id}}"></i></button>
+                        {% endif %}
+                    </form>
+
+                    <span id="num_likes{{obj.id}}"> {{obj.num_likes}} </span>
+                  </div>
+                  <div class="comment">
+                    {% comment %} <button data-bs-toggle="modal" data-bs-target="#commentmodal"><i class="far fa-comment"></i></button> {% endcomment %}
+                  </div>
+                  <div class="share">
+                    {% comment %} <button><i class="far fa-share-square"></i></button> {% endcomment %}
+                  </div>
+                  <div class="num_comments d-flex flex-row-reverse w-100">
+                    <span class="flex-end">
+                      <a class="comment_btn" id="{{obj.id}}">{{obj.num_comments}} Comments</a>
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+
+              <form action="" method="post">
+                {% csrf_token %}
+                <input type="hidden" name="post_id" value={{obj.id}}>
+                <div class="comment_form">
+                  {{comment_form}}
+                  <input type="submit" value="submit" class="btn btn-primary" name="submit_c_form">
+                </div>
+              </form>
+              
+              <div class="all_comments p-2 d-none" id="all_comments{{obj.id}}">
+                {% if obj.comment_set.all %}
+                  {% for c in obj.comment_set.all %}
+                    <p class="comment shadow-sm p-2">
+
+                      {% if c.user.user == request.user %}
+                        <a href="{% url 'my_profile' %}"><img src="{{c.user.avatar.url}}" alt="" class="img-fluid"> {{c.user.user}}</a> {{c.body}} <br>  
+                      {% else %}
+                        <a href="{{c.user.get_absolute_url}}"><img src="{{c.user.avatar.url}}" alt="" class="img-fluid"> {{c.user.user}}</a> {{c.body}} <br>  
+                      {% endif %}
+                    
+                    </p>
+                  {% endfor %}
+                {% else %}
+                  <h5>No Comments</h5>
+                {% endif %}
+              </div>
+
+            </div>
+          </div>
+          {% endfor %}
+        </div>
+      
+      </section>
+
+</div>
+
+
+
+<div class="modal fade" id="createpost" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-scrollable modal-md">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="exampleModalLabel">Create a post</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <div class="form-container">
+          <form action="" method='post' enctype="multipart/form-data">
+            {% csrf_token %}
+            {{post_form}}
+            <button type="submit" class="btn btn-secondary" data-bs-dismiss="modal" name="submit_p_form">Upload
+              post</button>
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+          </form>
+
+        </div>
+      </div>
+      <div class="modal-footer">
+      </div>
+    </div>
+  </div>
+</div>
+
+{% endblock content %}
+
+
+{% block scripts %}
+
+<script src="{% static 'post_script.js' %}"></script>
+
+{% endblock scripts %}
